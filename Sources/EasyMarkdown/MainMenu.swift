@@ -41,7 +41,8 @@ enum MainMenu {
 
     private static func fileMenu() -> NSMenu {
         let menu = NSMenu(title: "File")
-        menu.addItem(item("New", #selector(AppDelegate.newDocument(_:)), "n"))
+        menu.addItem(item("New Tab", #selector(AppDelegate.newDocument(_:)), "n"))
+        menu.addItem(item("New Window", #selector(AppDelegate.newDocumentWindow(_:)), "n", [.command, .option]))
         menu.addItem(item("Open…", #selector(AppDelegate.openDocument(_:)), "o"))
         menu.addItem(item("Welcome Window", #selector(AppDelegate.showWelcome(_:)), "0", [.command, .shift]))
         menu.addItem(.separator())

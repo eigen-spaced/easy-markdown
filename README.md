@@ -19,11 +19,15 @@ APP_DIR=~/Applications ./install.sh  # or pick locations (BIN_DIR too)
 
 ```sh
 easymd notes.md                 # open (creates the file if missing)
-easymd a.md b.md                # multiple windows
+easymd a.md b.md                # multiple files, as tabs
 easymd -p notes.md              # preview only (-e editor only, -s split)
 easymd --pdf notes.md           # headless export → notes.pdf
 easymd --pdf notes.md out.pdf
 ```
+
+Documents open as tabs in the frontmost window, including files passed to `easymd` while the
+app is already running. ⌘N and ⌘O (or the tab bar's + button) also open into a new tab; ⌥⌘N
+starts a separate window, and tabs can be dragged out or merged back (Window menu).
 
 Launching the app without a file (Dock, Spotlight, Finder) shows a welcome window with New,
 Open and your recent files; you can also drop a markdown file onto it. ⇧⌘0 brings it back.
@@ -36,6 +40,8 @@ asked which version to keep.
 |---|---|
 | ⌘1 / ⌘2 / ⌘3 | Editor only / split / preview only (also in the toolbar) |
 | ⌥⌘L | Toggle scroll sync |
+| ⌘N, ⌥⌘N | New tab, new window |
+| ⌃Tab / ⌃⇧Tab | Next / previous tab |
 | ⌘S, ⇧⌘S | Save, Save As |
 | ⇧⌘E | Export as PDF |
 | ⌘+ / ⌘- / ⌘0 | Font size (editor + preview) |

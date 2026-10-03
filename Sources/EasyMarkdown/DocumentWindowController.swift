@@ -18,7 +18,7 @@ private extension NSToolbarItem.Identifier {
     static let exportPDF = Self("exportPDF")
 }
 
-/// One window per document: a plain-text editor and a rendered preview, each in a glass pane.
+/// One window (shown as a tab) per document: a plain-text editor and a rendered preview, each in a glass pane.
 final class DocumentWindowController: NSWindowController, NSWindowDelegate, NSTextViewDelegate,
                                       NSSplitViewDelegate, NSMenuItemValidation, NSToolbarDelegate {
     private(set) var fileURL: URL?
@@ -76,6 +76,7 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate, NSTe
                               backing: .buffered, defer: false)
         window.minSize = NSSize(width: 520, height: 360)
         window.tabbingMode = .preferred
+        window.tabbingIdentifier = "EasyMarkdownDocument"
         window.titlebarAppearsTransparent = true
         window.toolbarStyle = .unified
         super.init(window: window)

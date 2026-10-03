@@ -98,22 +98,45 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         show(DocumentWindowController(url: url, mode: mode))
     }
 
-    private func show(_ controller: DocumentWindowController) {
+    /// Documents open as a new tab next to the current one in the frontmost document window,
+    /// or in a window of their own when there is none (or `newWindow` is set).
+    private func show(_ controller: DocumentWindowController, newWindow: Bool = false) {
         controller.onClose = { [weak self] closed in
             self?.controllers.removeAll { $0 === closed }
         }
         controller.onOpenMarkdown = { [weak self] in self?.open($0) }
-        if let last = controllers.last?.window, let window = controller.window {
-            window.setFrame(last.frame, display: false)
-            window.setFrameTopLeftPoint(window.cascadeTopLeft(from: NSPoint(x: last.frame.minX, y: last.frame.maxY)))
+        if let window = controller.window {
+            if !newWindow, let host = frontmostDocumentWindow() {
+                host.addTabbedWindow(window, ordered: .above)
+            } else if let last = controllers.last?.window {
+                window.setFrame(last.frame, display: false)
+                window.setFrameTopLeftPoint(window.cascadeTopLeft(from: NSPoint(x: last.frame.minX, y: last.frame.maxY)))
+            }
         }
         controllers.append(controller)
         controller.showWindow(nil)
         welcome?.close()
     }
 
+    /// The selected tab of the frontmost on-screen document window.
+    private func frontmostDocumentWindow() -> NSWindow? {
+        let documents = controllers.compactMap(\.window)
+        return NSApp.orderedWindows.first { window in
+            window.isVisible && !window.isMiniaturized && documents.contains(window)
+        }
+    }
+
     @objc func newDocument(_ sender: Any?) {
         show(DocumentWindowController(url: nil))
+    }
+
+    @objc func newDocumentWindow(_ sender: Any?) {
+        show(DocumentWindowController(url: nil), newWindow: true)
+    }
+
+    /// The tab bar's + button.
+    @objc func newWindowForTab(_ sender: Any?) {
+        newDocument(sender)
     }
 
     @objc func openDocument(_ sender: Any?) {
