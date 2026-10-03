@@ -1,0 +1,65 @@
+#!/bin/sh
+# easymd — open markdown files in EasyMarkdown.
+#
+#   easymd [file.md ...]          open files (missing files are created empty)
+#   easymd -p file.md ...         open in preview-only mode (-e: editor only, -s: split)
+#   easymd --pdf in.md [out.pdf]  export to PDF without opening a window
+set -eu
+
+# Locate the app: this script lives in EasyMarkdown.app/Contents/Resources (usually via a symlink).
+self=$(realpath "$0")
+APP=$(cd "$(dirname "$self")/../.." && pwd)
+case "$APP" in
+  *.app) ;;
+  *)
+    APP=
+    for candidate in /Applications/EasyMarkdown.app "$HOME/Applications/EasyMarkdown.app"; do
+      [ -d "$candidate" ] && { APP=$candidate; break; }
+    done
+    [ -n "$APP" ] || APP=$(mdfind "kMDItemCFBundleIdentifier == 'dev.easymarkdown.EasyMarkdown'" | head -n 1)
+    ;;
+esac
+if [ -z "$APP" ] || [ ! -d "$APP" ]; then
+  echo "easymd: cannot find EasyMarkdown.app" >&2
+  exit 1
+fi
+
+usage() {
+  sed -n '2,6s/^# \{0,1\}//p' "$self"
+}
+
+mode=
+case "${1:-}" in
+  -h|--help) usage; exit 0 ;;
+  -p|--preview) mode=preview; shift ;;
+  -e|--editor) mode=editor; shift ;;
+  -s|--split) mode=split; shift ;;
+  --pdf)
+    [ $# -ge 2 ] || { usage >&2; exit 2; }
+    in=$(realpath "$2")
+    out=${3:-${2%.*}.pdf}
+    out=$(cd "$(dirname "$out")" && pwd)/$(basename "$out")
+    exec "$APP/Contents/MacOS/EasyMarkdown" --export-pdf "$in" "$out"
+    ;;
+esac
+
+if [ $# -eq 0 ]; then
+  [ -z "$mode" ] || { usage >&2; exit 2; }
+  exec open -a "$APP"
+fi
+
+for f in "$@"; do
+  [ -e "$f" ] || : > "$f"
+done
+
+if [ -z "$mode" ]; then
+  exec open -a "$APP" "$@"
+fi
+
+# Modes travel via a URL so they also reach an already-running app.
+urlencode() {
+  osascript -l JavaScript -e 'function run(argv) { return encodeURIComponent(argv[0]) }' "$1"
+}
+for f in "$@"; do
+  open -a "$APP" "easymarkdown://open?mode=$mode&path=$(urlencode "$(realpath "$f")")"
+done

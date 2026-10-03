@@ -1,0 +1,258 @@
+/* ------------------------------------------------------------------ themes
+ * Each theme defines the same variables for light and dark. --heading, --code-fg and
+ * --accent are also reported to the native editor so both panes share a palette.
+ * Dark variants are screen-only so PDFs always come out light.
+ */
+:root {
+  --font-body: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --font-heading: var(--font-body);
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: light dark;
+}
+
+.theme-github {
+  --bg: #ffffff; --fg: #1f2328; --muted: #59636e; --link: #0969da; --heading: #1f2328;
+  --border: #d1d9e0; --subtle-bg: #f6f8fa; --code-bg: rgba(129, 139, 152, 0.14);
+  --code-fg: #cf222e; --accent: #8250df;
+}
+.theme-paper {
+  --font-body: "Iowan Old Style", "New York", ui-serif, Georgia, serif;
+  --font-heading: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --bg: #fbf8f1; --fg: #2b2622; --muted: #7a6f63; --link: #a0522d; --heading: #1d1915;
+  --border: #e4dccd; --subtle-bg: #f3eee3; --code-bg: rgba(160, 120, 80, 0.12);
+  --code-fg: #b5532b; --accent: #8a5a44;
+}
+.theme-nord {
+  --bg: #eceff4; --fg: #2e3440; --muted: #4c566a; --link: #5e81ac; --heading: #2e3440;
+  --border: #d8dee9; --subtle-bg: #e5e9f0; --code-bg: rgba(76, 86, 106, 0.1);
+  --code-fg: #bf616a; --accent: #b48ead;
+}
+.theme-solarized {
+  --bg: #fdf6e3; --fg: #586e75; --muted: #93a1a1; --link: #268bd2; --heading: #073642;
+  --border: #eee8d5; --subtle-bg: #eee8d5; --code-bg: rgba(147, 161, 161, 0.18);
+  --code-fg: #d33682; --accent: #6c71c4;
+}
+.theme-gruvbox {
+  --bg: #fbf1c7; --fg: #3c3836; --muted: #7c6f64; --link: #076678; --heading: #282828;
+  --border: #d5c4a1; --subtle-bg: #f2e5bc; --code-bg: rgba(124, 111, 100, 0.14);
+  --code-fg: #9d0006; --accent: #8f3f71;
+}
+.theme-tokyo-night {
+  --bg: #e1e2e7; --fg: #3760bf; --muted: #6172b0; --link: #2e7de9; --heading: #343b58;
+  --border: #c4c8da; --subtle-bg: #d5d6db; --code-bg: rgba(97, 114, 176, 0.12);
+  --code-fg: #f52a65; --accent: #9854f1;
+}
+
+@media screen and (prefers-color-scheme: dark) {
+  .theme-github {
+    --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --link: #4493f8; --heading: #f0f6fc;
+    --border: #3d444d; --subtle-bg: #151b23; --code-bg: rgba(101, 108, 118, 0.25);
+    --code-fg: #ff7b72; --accent: #d2a8ff;
+  }
+  .theme-paper {
+    --bg: #1c1a17; --fg: #e7e0d3; --muted: #a39887; --link: #e0a370; --heading: #f3ece0;
+    --border: #3a352e; --subtle-bg: #24211d; --code-bg: rgba(224, 163, 112, 0.12);
+    --code-fg: #e8a07a; --accent: #d4a373;
+  }
+  .theme-nord {
+    --bg: #2e3440; --fg: #d8dee9; --muted: #a3abb9; --link: #88c0d0; --heading: #eceff4;
+    --border: #434c5e; --subtle-bg: #3b4252; --code-bg: rgba(67, 76, 94, 0.7);
+    --code-fg: #ebcb8b; --accent: #b48ead;
+  }
+  .theme-solarized {
+    --bg: #002b36; --fg: #93a1a1; --muted: #657b83; --link: #268bd2; --heading: #eee8d5;
+    --border: #073642; --subtle-bg: #073642; --code-bg: rgba(7, 54, 66, 0.9);
+    --code-fg: #d33682; --accent: #6c71c4;
+  }
+  .theme-gruvbox {
+    --bg: #282828; --fg: #ebdbb2; --muted: #a89984; --link: #83a598; --heading: #fbf1c7;
+    --border: #504945; --subtle-bg: #32302f; --code-bg: rgba(80, 73, 69, 0.6);
+    --code-fg: #fb4934; --accent: #d3869b;
+  }
+  .theme-tokyo-night {
+    --bg: #1a1b26; --fg: #c0caf5; --muted: #737aa2; --link: #7aa2f7; --heading: #c0caf5;
+    --border: #292e42; --subtle-bg: #16161e; --code-bg: rgba(41, 46, 66, 0.8);
+    --code-fg: #f7768e; --accent: #bb9af7;
+  }
+}
+
+/* ------------------------------------------------------------------ base */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+body {
+  font: 16px/1.65 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  word-wrap: break-word;
+}
+
+::selection { background: color-mix(in srgb, var(--link) 28%, transparent); }
+
+.markdown-body {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 32px 40px 80px;
+}
+
+.markdown-body > :first-child { margin-top: 0 !important; }
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 1.6em 0 0.6em;
+  font-family: var(--font-heading);
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--heading);
+}
+h1 { font-size: 2.1em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); letter-spacing: -0.02em; }
+h2 { font-size: 1.5em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1em; }
+h5 { font-size: 0.9em; }
+h6 { font-size: 0.85em; color: var(--muted); }
+
+p, blockquote, ul, ol, dl, table, pre, details, .math-block, .mermaid-block { margin: 0 0 1.1em; }
+
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+strong { font-weight: 650; }
+
+hr {
+  height: 1px;
+  margin: 2em 0;
+  border: 0;
+  background: var(--border);
+}
+
+blockquote {
+  margin-left: 0;
+  padding: 0.2em 1em;
+  color: var(--muted);
+  border-left: 3px solid color-mix(in srgb, var(--link) 55%, var(--border));
+  border-radius: 2px;
+}
+blockquote > :last-child { margin-bottom: 0; }
+
+ul, ol { padding-left: 1.8em; }
+li + li { margin-top: 0.25em; }
+li > ul, li > ol { margin-bottom: 0; }
+li::marker { color: var(--muted); }
+
+.contains-task-list { padding-left: 1.2em; list-style: none; }
+.task-list-item { list-style: none; }
+.task-list-item-checkbox { margin: 0 0.45em 0 -1.2em; vertical-align: middle; accent-color: var(--link); }
+
+code, pre, kbd { font-family: var(--font-mono); font-size: 0.86em; }
+
+:not(pre) > code {
+  padding: 0.15em 0.4em;
+  border-radius: 6px;
+  background: var(--code-bg);
+}
+
+pre {
+  position: relative;
+  padding: 0;
+  background: none;
+  line-height: 1.5;
+}
+pre > code.hljs {
+  display: block;
+  padding: 16px 18px;
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  font-size: 1em;
+}
+/* Lives inside <code> so it takes the code theme's colour. */
+.code-lang {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font: 600 10px/1 var(--font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+}
+
+kbd {
+  padding: 0.15em 0.45em;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--subtle-bg);
+}
+
+table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+th, td { padding: 7px 14px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+th:last-child, td:last-child { border-right: 0; }
+tr:last-child td { border-bottom: 0; }
+th { font-weight: 600; background: var(--subtle-bg); }
+
+img { max-width: 100%; border-radius: 6px; }
+
+details {
+  padding: 0.5em 0.9em;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+summary { cursor: pointer; font-weight: 600; }
+
+/* ------------------------------------------------------------------ math & diagrams */
+
+.math-block, eqn, section > eqn { display: block; overflow-x: auto; overflow-y: hidden; text-align: center; }
+.katex-display { margin: 0.6em 0; }
+.katex { font-size: 1.08em; }
+section.eqno { display: flex; align-items: center; }
+section.eqno > eqn { flex: 1; }
+section.eqno > span { color: var(--muted); }
+
+.mermaid-block {
+  display: flex;
+  justify-content: center;
+  min-height: 2em;
+  padding: 12px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--subtle-bg);
+}
+.mermaid-block svg { max-width: 100%; height: auto; }
+.mermaid-error {
+  margin: 0;
+  color: var(--code-fg);
+  white-space: pre-wrap;
+  font-size: 0.8em;
+  background: none;
+}
+
+/* ------------------------------------------------------------------ print */
+
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { background: #fff; }
+  .markdown-body { max-width: none; padding: 0; }
+  body { font-size: 11pt; }
+  pre, blockquote, table, img, .mermaid-block, .math-block { break-inside: avoid; }
+  h1, h2, h3, h4, h5, h6 { break-after: avoid; }
+  pre > code.hljs { white-space: pre-wrap; overflow: visible; }
+  a { text-decoration: underline; }
+}
