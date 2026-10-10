@@ -10,6 +10,7 @@ final class WelcomeWindowController: NSWindowController, NSWindowDelegate {
     var onClose: (() -> Void)?
 
     private let recentStack = NSStackView()
+    private let dropOverlay = DropOverlay(cornerRadius: 17, opensTabs: false)
 
     init() {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 640, height: 400),
@@ -44,7 +45,8 @@ final class WelcomeWindowController: NSWindowController, NSWindowDelegate {
         background.material = .underWindowBackground
         background.blendingMode = .behindWindow
         background.state = .followsWindowActiveState
-        background.onDrop = { [weak self] urls in urls.forEach { self?.onOpenURL?($0) } }
+        background.dropOverlay = dropOverlay
+        dropOverlay.onDrop = { [weak self] urls in urls.forEach { self?.onOpenURL?($0) } }
         window.contentView = background
 
         // Left: identity and actions.
@@ -113,6 +115,7 @@ final class WelcomeWindowController: NSWindowController, NSWindowDelegate {
 
         background.addSubview(left)
         background.addSubview(card)
+        background.addSubview(dropOverlay)
         NSLayoutConstraint.activate([
             left.leadingAnchor.constraint(equalTo: background.leadingAnchor, constant: 24),
             left.widthAnchor.constraint(equalToConstant: 240),
@@ -121,6 +124,10 @@ final class WelcomeWindowController: NSWindowController, NSWindowDelegate {
             card.trailingAnchor.constraint(equalTo: background.trailingAnchor, constant: -12),
             card.topAnchor.constraint(equalTo: background.topAnchor, constant: 34),
             card.bottomAnchor.constraint(equalTo: background.bottomAnchor, constant: -12),
+            dropOverlay.topAnchor.constraint(equalTo: background.topAnchor, constant: 34),
+            dropOverlay.leadingAnchor.constraint(equalTo: background.leadingAnchor, constant: 12),
+            dropOverlay.trailingAnchor.constraint(equalTo: background.trailingAnchor, constant: -12),
+            dropOverlay.bottomAnchor.constraint(equalTo: background.bottomAnchor, constant: -12),
         ])
     }
 
@@ -216,34 +223,4 @@ private final class RecentRow: NSView {
         if bounds.contains(convert(event.locationInWindow, from: nil)) { action() }
     }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
-}
-
-/// Window background that accepts dropped markdown files.
-private final class DropView: NSVisualEffectView {
-    var onDrop: (([URL]) -> Void)?
-    private static let extensions: Set<String> = ["md", "markdown", "mdown", "mkd", "txt"]
-
-    override init(frame: NSRect) {
-        super.init(frame: frame)
-        registerForDraggedTypes([.fileURL])
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
-
-    private func urls(_ info: NSDraggingInfo) -> [URL] {
-        let objects = info.draggingPasteboard.readObjects(forClasses: [NSURL.self],
-                                                          options: [.urlReadingFileURLsOnly: true]) as? [URL]
-        return (objects ?? []).filter { Self.extensions.contains($0.pathExtension.lowercased()) }
-    }
-
-    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
-        urls(sender).isEmpty ? [] : .copy
-    }
-
-    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
-        let found = urls(sender)
-        guard !found.isEmpty else { return false }
-        onDrop?(found)
-        return true
-    }
 }

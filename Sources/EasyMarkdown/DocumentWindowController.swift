@@ -27,11 +27,13 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate, NSTe
 
     private let splitView = PaneSplitView()
     private let editorScroll = NSScrollView()
-    private let textView = NSTextView(usingTextLayoutManager: false)
+    private let textView = EditorTextView(usingTextLayoutManager: false)
     private let preview = MarkdownPreview()
     private lazy var editorCard = GlassCard(content: editorScroll)
     private lazy var previewCard = GlassCard(content: preview.webView)
     private let highlighter = MarkdownHighlighter()
+    private var imageViewer: ImageViewer?
+    private let dropOverlay = DropOverlay(cornerRadius: 17)
 
     private var watcher: FileWatcher?
     /// Contents of the file as last read from / written to disk.
@@ -148,7 +150,7 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate, NSTe
 
     private func configureLayout() {
         guard let window else { return }
-        let background = NSVisualEffectView()
+        let background = DropView()
         background.material = .underWindowBackground
         background.blendingMode = .behindWindow
         background.state = .followsWindowActiveState
@@ -160,6 +162,12 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate, NSTe
         splitView.addArrangedSubview(editorCard)
         splitView.addArrangedSubview(previewCard)
         background.addSubview(splitView)
+        // Covers both panes, matching their glass rims.
+        background.addSubview(dropOverlay)
+        dropOverlay.onDrop = { [weak self] in self?.openDropped($0) }
+        background.dropOverlay = dropOverlay
+        textView.dropOverlay = dropOverlay
+        preview.webView.dropOverlay = dropOverlay
 
         let guide = window.contentLayoutGuide as! NSLayoutGuide
         NSLayoutConstraint.activate([
@@ -167,6 +175,10 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate, NSTe
             splitView.leadingAnchor.constraint(equalTo: background.leadingAnchor, constant: 10),
             splitView.trailingAnchor.constraint(equalTo: background.trailingAnchor, constant: -10),
             splitView.bottomAnchor.constraint(equalTo: background.bottomAnchor, constant: -10),
+            dropOverlay.topAnchor.constraint(equalTo: splitView.topAnchor),
+            dropOverlay.leadingAnchor.constraint(equalTo: splitView.leadingAnchor),
+            dropOverlay.trailingAnchor.constraint(equalTo: splitView.trailingAnchor),
+            dropOverlay.bottomAnchor.constraint(equalTo: splitView.bottomAnchor),
         ])
         window.setFrameAutosaveName("EasyMarkdownDocument")
     }
@@ -181,8 +193,27 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate, NSTe
 
     private func configurePreview() {
         preview.onOpenMarkdown = { [weak self] in self?.onOpenMarkdown?($0) }
+        preview.onOpenImage = { [weak self] in self?.showImage($0) }
         preview.onScroll = { [weak self] in self?.previewDidScroll(toLine: $0) }
         preview.onThemeColors = { [weak self] in self?.apply(themeColors: $0) }
+    }
+
+    /// Markdown files dropped on the window open as tabs next to this one.
+    private func openDropped(_ urls: [URL]) {
+        NSApp.activate(ignoringOtherApps: true)
+        urls.forEach { onOpenMarkdown?($0) }
+    }
+
+    private func showImage(_ url: URL) {
+        guard imageViewer == nil else { return }
+        ImageViewer.loadImage(url) { [weak self] image in
+            guard let self, let window = self.window, self.imageViewer == nil else { return }
+            guard let image else { return NSSound.beep() }
+            let viewer = ImageViewer(image: image)
+            viewer.onClose = { [weak self] in self?.imageViewer = nil }
+            self.imageViewer = viewer
+            viewer.present(in: window)
+        }
     }
 
     private func setFileURL(_ url: URL?) {

@@ -303,6 +303,14 @@
   }, { passive: true });
 
   window.addEventListener("resize", () => { anchorCache = null; });
+
+  // Clicking an image opens it in the native viewer; linked images still follow their link.
+  content.addEventListener("click", (event) => {
+    const img = event.target.closest("img");
+    if (!img || img.closest("a") || !native.image) return;
+    event.preventDefault();
+    native.image.postMessage(img.currentSrc || img.src);
+  });
   new ResizeObserver(() => { anchorCache = null; }).observe(content);
 
   // ---------------------------------------------------------------- render

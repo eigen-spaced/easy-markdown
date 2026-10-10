@@ -87,16 +87,18 @@ extension NSColor {
 
 /// A WKWebView that renders markdown via the bundled markdown-it shell.
 final class MarkdownPreview: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
-    let webView: WKWebView
+    let webView: PreviewWebView
     /// Called when the user clicks a link to another markdown file.
     var onOpenMarkdown: ((URL) -> Void)?
+    /// Called when the user clicks an image; the URL is a file, `data:` or http(s) URL.
+    var onOpenImage: ((URL) -> Void)?
     /// Called when the user scrolls the preview; the value is the fractional source line at
     /// the top of the view, or -1 for "scrolled to the end".
     var onScroll: ((Double) -> Void)?
     /// Called when the preview theme (or light/dark appearance) changes.
     var onThemeColors: ((ThemeColors) -> Void)?
 
-    private static let messages = ["ready", "scroll", "theme"]
+    private static let messages = ["ready", "scroll", "theme", "image"]
     private var isReady = false
     private var scrollInFlight = false
     private var pendingScrollLine: Double?
@@ -106,7 +108,7 @@ final class MarkdownPreview: NSObject, WKNavigationDelegate, WKScriptMessageHand
     override init() {
         let config = WKWebViewConfiguration()
         config.setURLSchemeHandler(LocalSchemeHandler(), forURLScheme: LocalSchemeHandler.scheme)
-        webView = WKWebView(frame: .zero, configuration: config)
+        webView = PreviewWebView(frame: .zero, configuration: config)
         super.init()
         let handler = WeakMessageHandler(self)
         Self.messages.forEach { config.userContentController.add(handler, name: $0) }
@@ -192,6 +194,9 @@ final class MarkdownPreview: NSObject, WKNavigationDelegate, WKScriptMessageHand
             if let line = message.body as? Double { onScroll?(line) }
         case "theme":
             if let dict = message.body as? [String: String], let colors = ThemeColors(dict) { onThemeColors?(colors) }
+        case "image":
+            guard let src = message.body as? String, let url = URL(string: src) else { return }
+            onOpenImage?(url.scheme == LocalSchemeHandler.scheme ? URL(fileURLWithPath: url.path) : url)
         default:
             break
         }

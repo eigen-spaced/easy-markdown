@@ -84,7 +84,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         open(url, mode: nil)
     }
 
-    func open(_ url: URL, mode: ViewMode?) {
+    /// `host` is the window to add a new tab to; by default the frontmost document window.
+    func open(_ url: URL, mode: ViewMode?, nextTo host: NSWindow? = nil) {
         let url = url.standardizedFileURL
         if let existing = controllers.first(where: { $0.fileURL?.standardizedFileURL == url }) {
             if let mode { existing.setViewMode(mode) }
@@ -95,18 +96,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSAlert(error: CocoaError(.fileReadNoSuchFile, userInfo: [NSFilePathErrorKey: url.path])).runModal()
             return
         }
-        show(DocumentWindowController(url: url, mode: mode))
+        show(DocumentWindowController(url: url, mode: mode), nextTo: host)
     }
 
-    /// Documents open as a new tab next to the current one in the frontmost document window,
-    /// or in a window of their own when there is none (or `newWindow` is set).
-    private func show(_ controller: DocumentWindowController, newWindow: Bool = false) {
+    /// Documents open as a new tab next to `host` (by default the current tab of the frontmost
+    /// document window), or in a window of their own when there is none (or `newWindow` is set).
+    private func show(_ controller: DocumentWindowController, nextTo host: NSWindow? = nil, newWindow: Bool = false) {
         controller.onClose = { [weak self] closed in
             self?.controllers.removeAll { $0 === closed }
         }
-        controller.onOpenMarkdown = { [weak self] in self?.open($0) }
+        // Links clicked and files dropped in a document open next to it, not in whichever window is in front.
+        controller.onOpenMarkdown = { [weak self, weak controller] in
+            self?.open($0, mode: nil, nextTo: controller?.window)
+        }
         if let window = controller.window {
-            if !newWindow, let host = frontmostDocumentWindow() {
+            if !newWindow, let host = host ?? frontmostDocumentWindow() {
                 host.addTabbedWindow(window, ordered: .above)
             } else if let last = controllers.last?.window {
                 window.setFrame(last.frame, display: false)
